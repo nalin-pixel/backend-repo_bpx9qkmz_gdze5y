@@ -12,37 +12,57 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
+from datetime import date
 
-# Example schemas (replace with your own):
+# CRM ENTITIES
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
+class Company(BaseModel):
+    name: str = Field(..., description="Company name")
+    website: Optional[str] = Field(None, description="Company website")
+    industry: Optional[str] = Field(None, description="Industry")
+    size: Optional[str] = Field(None, description="Company size (e.g., 11-50)")
+    phone: Optional[str] = Field(None, description="Main phone number")
+    address: Optional[str] = Field(None, description="Address")
+    notes: Optional[str] = Field(None, description="Internal notes")
+
+class Contact(BaseModel):
     name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+    title: Optional[str] = Field(None, description="Job title")
+    company_id: Optional[str] = Field(None, description="Related company id")
+    tags: List[str] = Field(default_factory=list, description="Tags")
+    status: str = Field("active", description="Status")
+    notes: Optional[str] = Field(None, description="Notes")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
+class Deal(BaseModel):
+    title: str = Field(..., description="Deal title")
+    value: float = Field(0.0, ge=0, description="Deal value")
+    stage: str = Field("new", description="Pipeline stage")
+    contact_id: Optional[str] = Field(None, description="Primary contact id")
+    company_id: Optional[str] = Field(None, description="Company id")
+    probability: Optional[int] = Field(50, ge=0, le=100, description="Win probability (%)")
+    close_date: Optional[date] = Field(None, description="Expected close date")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# TASK/PROJECT MANAGEMENT
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class Project(BaseModel):
+    name: str = Field(..., description="Project name")
+    description: Optional[str] = Field(None, description="Project description")
+    owner_id: Optional[str] = Field(None, description="Owner user id")
+    members: List[str] = Field(default_factory=list, description="Member user ids")
+    status: str = Field("active", description="Project status")
+    progress: int = Field(0, ge=0, le=100, description="Progress %")
+    due_date: Optional[date] = Field(None, description="Due date")
+    tags: List[str] = Field(default_factory=list, description="Tags")
+
+class Task(BaseModel):
+    title: str = Field(..., description="Task title")
+    description: Optional[str] = Field(None, description="Task description")
+    status: str = Field("todo", description="todo | in_progress | done")
+    priority: str = Field("medium", description="low | medium | high | urgent")
+    assignee_id: Optional[str] = Field(None, description="Assignee user id")
+    project_id: Optional[str] = Field(None, description="Related project id")
+    due_date: Optional[date] = Field(None, description="Due date")
+    labels: List[str] = Field(default_factory=list, description="Labels")
